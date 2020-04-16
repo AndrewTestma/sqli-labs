@@ -17,8 +17,6 @@ func letter() map[int]string {
 
 func payload(url string) {
 	defer timeCost()()
-	//ch <-struct {}{}
-	//fmt.Println(url)
 	respDataBase, err := http.Get(url)
 	if err != nil {
 		log.Fatal(err)
